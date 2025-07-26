@@ -1,3 +1,9 @@
+using CriWare;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Networking;
+
 class CriAtomWebGL
 {
     public static bool IsAcfLoaded { get; private set; } = false;
@@ -68,6 +74,7 @@ class CriAtomWebGL
         else
         {
             Debug.Log("ACB登録成功（WebGLバイナリ）: " + acbPath);
+            // ACBをディクショナリに保存
             loadedAcbs[fileName] = acb;
             IsAcbLoaded = true;
         }
@@ -86,6 +93,11 @@ class CriAtomWebGL
 
         byte[] acfBytes = request.downloadHandler.data;
 
+        #if UNITY_WEBGL
+            Debug.Log("WebGL環境ではACF登録をスキップします");
+            IsAcfLoaded = true;
+        #else
+        
         var handle = GCHandle.Alloc(acfBytes, GCHandleType.Pinned);
         IntPtr ptr = handle.AddrOfPinnedObject();
         bool result = CriAtomEx.RegisterAcf(ptr, acfBytes.Length);
@@ -97,9 +109,10 @@ class CriAtomWebGL
         }
         else
         {
-            Debug.Log("ACF登録成功（WebGLバイナリ）");
+            Debug.Log("ACF登録成功（バイナリ）");
             IsAcfLoaded = true;
         }
+#endif
     }
     
     private class CriAtomCoroutineRunner : MonoBehaviour { }
